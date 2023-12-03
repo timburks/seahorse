@@ -1,5 +1,5 @@
 use crate::{
-    error::ActionError, error::ActionErrorKind, Action, ActionWithResult, Command, Context, Flag,
+    error::ActionError, error::ActionErrorKind, Action, Command, Context, Flag,
     FlagType, Help,
 };
 use std::error::Error;
@@ -21,8 +21,6 @@ pub struct App {
     pub commands: Option<Vec<Command>>,
     /// Application action
     pub action: Option<Action>,
-    /// Alternate application action that returns a Result
-    pub action_with_result: Option<ActionWithResult>,
     /// Application flags
     pub flags: Option<Vec<Flag>>,
 }
@@ -113,7 +111,7 @@ impl App {
     ///
     /// let command = Command::new("hello")
     ///     .usage("cli hello [arg]")
-    ///     .action(|c| println!("{:?}", c.args));
+    ///     .action(|c| {println!("{:?}", c.args); Ok(())});
     ///
     /// let app = App::new("cli")
     ///     .command(command);
@@ -128,11 +126,11 @@ impl App {
     ///
     /// let command1 = Command::new("hello")
     ///     .usage("cli hello [arg]")
-    ///     .action(|c| println!("{:?}", c.args));
+    ///     .action(|c| {println!("{:?}", c.args); Ok(())});
     ///
     /// let command2 = Command::new("hello")
     ///     .usage("cli hello [arg]")
-    ///     .action(|c| println!("{:?}", c.args));
+    ///     .action(|c| {println!("{:?}", c.args); Ok(())});
     ///
     /// let app = App::new("cli")
     ///     .command(command1)
@@ -160,62 +158,12 @@ impl App {
     /// ```
     /// use seahorse::{Action, App, Context};
     ///
-    /// let action: Action = |c: &Context| println!("{:?}", c.args);
+    /// let action: Action = |c: &Context| {println!("{:?}", c.args); Ok(())};
     /// let app = App::new("cli")
-    ///     .action(action);
-    /// ```
-    ///     
-    /// # Panics
-    ///
-    /// You cannot set both action and action_with_result.
-    ///
-    /// ```should_panic
-    /// use seahorse::{Action, ActionWithResult, App, Context};
-    ///
-    /// let action_with_result: ActionWithResult = |c: &Context| {println!("{:?}", c.args); Ok(())};
-    /// let action: Action = |c: &Context| println!("{:?}", c.args);
-    /// let app = App::new("cli")
-    ///     .action_with_result(action_with_result)
     ///     .action(action);
     /// ```
     pub fn action(mut self, action: Action) -> Self {
-        if self.action_with_result.is_some() {
-            panic!(r#"only one of action and action_with_result can be set."#);
-        }
         self.action = Some(action);
-        self
-    }
-
-    /// Set action of the app
-    ///
-    /// Example
-    ///
-    /// ```
-    /// use seahorse::{ActionWithResult, App, Context};
-    ///
-    /// let action_with_result: ActionWithResult = |c: &Context| {println!("{:?}", c.args); Ok(())};
-    /// let app = App::new("cli")
-    ///     .action_with_result(action_with_result);
-    /// ```
-    ///
-    /// # Panics
-    ///
-    /// You cannot set both action and action_with_result.
-    ///
-    /// ```should_panic
-    /// use seahorse::{Action, ActionWithResult, App, Context};
-    ///
-    /// let action_with_result: ActionWithResult = |c: &Context| {println!("{:?}", c.args); Ok(())};
-    /// let action: Action = |c: &Context| println!("{:?}", c.args);
-    /// let app = App::new("cli")
-    ///     .action(action)
-    ///     .action_with_result(action_with_result);
-    /// ```
-    pub fn action_with_result(mut self, action_with_result: ActionWithResult) -> Self {
-        if self.action.is_some() {
-            panic!(r#"only one of action and action_with_result can be set."#);
-        }
-        self.action_with_result = Some(action_with_result);
         self
     }
 
@@ -239,25 +187,6 @@ impl App {
         self
     }
 
-    /// Run app
-    ///
-    /// Example
-    ///
-    /// ```
-    /// use std::env;
-    /// use seahorse::App;
-    ///
-    /// let args: Vec<String> = env::args().collect();
-    /// let app = App::new("cli");
-    /// app.run(args);
-    /// ```
-    pub fn run(&self, args: Vec<String>) {
-        match self.run_with_result(args) {
-            Ok(_) => return,
-            Err(e) => panic!("{}", e),
-        }
-    }
-
     /// Run app, returning a result
     ///
     /// Example
@@ -268,9 +197,9 @@ impl App {
     ///
     /// let args: Vec<String> = env::args().collect();
     /// let app = App::new("cli");
-    /// let result = app.run_with_result(args);
+    /// let result = app.run(args);
     /// ```
-    pub fn run_with_result(&self, args: Vec<String>) -> Result<(), Box<dyn Error>> {
+    pub fn run(&self, args: Vec<String>) -> Result<(), Box<dyn Error>> {
         let args = Self::normalized_args(args);
         let (cmd_v, args_v) = match args.len() {
             1 => args.split_at(1),
@@ -288,38 +217,23 @@ impl App {
         };
 
         match self.select_command(cmd) {
-            Some(command) => return command.run_with_result(args_v.to_vec()),
+            Some(command) => return command.run(args_v.to_vec()),
             None => match self.action {
                 Some(action) => {
                     if args.contains(&"-h".to_string()) || args.contains(&"--help".to_string()) {
                         self.help();
                         return Ok(());
                     }
-                    action(&Context::new(
+                    return action(&Context::new(
                         args[1..].to_vec(),
                         self.flags.clone(),
                         self.help_text(),
                     ));
+                }
+                None => {
+                    self.help();
                     return Ok(());
                 }
-                None => match self.action_with_result {
-                    Some(action_with_result) => {
-                        if args.contains(&"-h".to_string()) || args.contains(&"--help".to_string())
-                        {
-                            self.help();
-                            return Ok(());
-                        }
-                        return action_with_result(&Context::new(
-                            args[1..].to_vec(),
-                            self.flags.clone(),
-                            self.help_text(),
-                        ));
-                    }
-                    None => {
-                        self.help();
-                        return Ok(());
-                    }
-                },
             },
         }
     }
@@ -495,7 +409,7 @@ impl Help for App {
 
 #[cfg(test)]
 mod tests {
-    use crate::{Action, ActionWithResult, App, Command, Context, Flag, FlagType};
+    use crate::{Action, App, Command, Context, Flag, FlagType};
     use std::fmt;
 
     #[test]
@@ -526,6 +440,7 @@ mod tests {
                 Ok(flag) => assert_eq!(1.23, flag),
                 _ => assert!(false, "float test false..."),
             }
+            return Ok(());
         };
         let c = Command::new("hello")
             .alias("h")
@@ -593,6 +508,7 @@ mod tests {
                 Ok(flag) => assert_eq!(1.23, flag),
                 _ => assert!(false, "float test false..."),
             }
+            return Ok(());
         };
 
         let app = App::new("test")
@@ -641,6 +557,7 @@ mod tests {
                 Ok(flag) => assert_eq!(1.23, flag),
                 _ => assert!(false, "float test false..."),
             }
+            return Ok(());
         };
 
         let app = App::new("test")
@@ -688,6 +605,7 @@ mod tests {
                 Ok(flag) => assert_eq!(1.23, flag),
                 _ => assert!(false, "float test false..."),
             }
+            return Ok(());
         };
 
         let app = App::new("test")
@@ -719,83 +637,62 @@ mod tests {
 
     #[test]
     fn app_with_ok_result_test() {
-        let a: ActionWithResult = |_: &Context| {
+        let a: Action = |_: &Context| {
             return Ok(());
         };
-        let app = App::new("test").action_with_result(a);
-        app.run(vec!["test".to_string()]);
-    }
-
-    #[test]
-    #[should_panic]
-    fn app_with_error_result_test() {
-        let a: ActionWithResult = |_: &Context| {
-            return Err(Box::new(Error));
-        };
-        let app = App::new("test").action_with_result(a);
+        let app = App::new("test").action(a);
         app.run(vec!["test".to_string()]);
     }
 
     #[test]
     fn app_with_ok_result_value_test() {
-        let a: ActionWithResult = |_: &Context| {
+        let a: Action = |_: &Context| {
             return Ok(());
         };
-        let app = App::new("test").action_with_result(a);
-        let result = app.run_with_result(vec!["test".to_string()]);
+        let app = App::new("test").action(a);
+        let result = app.run(vec!["test".to_string()]);
         assert!(!result.is_err());
     }
 
     #[test]
     fn app_with_error_result_value_test() {
-        let a: ActionWithResult = |_: &Context| {
+        let a: Action = |_: &Context| {
             return Err(Box::new(Error));
         };
-        let app = App::new("test").action_with_result(a);
-        let result = app.run_with_result(vec!["test".to_string()]);
+        let app = App::new("test").action(a);
+        let result = app.run(vec!["test".to_string()]);
         assert!(result.is_err());
     }
 
     #[test]
     fn command_with_ok_result_test() {
-        let a: ActionWithResult = |_: &Context| {
+        let a: Action = |_: &Context| {
             return Ok(());
         };
-        let command = Command::new("hello").action_with_result(a);
-        let app = App::new("test").command(command);
-        app.run(vec!["test".to_string(), "hello".to_string()]);
-    }
-
-    #[test]
-    #[should_panic]
-    fn command_with_error_result_test() {
-        let a: ActionWithResult = |_: &Context| {
-            return Err(Box::new(Error));
-        };
-        let command = Command::new("hello").action_with_result(a);
+        let command = Command::new("hello").action(a);
         let app = App::new("test").command(command);
         app.run(vec!["test".to_string(), "hello".to_string()]);
     }
 
     #[test]
     fn command_with_ok_result_value_test() {
-        let a: ActionWithResult = |_: &Context| {
+        let a: Action = |_: &Context| {
             return Ok(());
         };
-        let command = Command::new("hello").action_with_result(a);
+        let command = Command::new("hello").action(a);
         let app = App::new("test").command(command);
-        let result = app.run_with_result(vec!["test".to_string(), "hello".to_string()]);
+        let result = app.run(vec!["test".to_string(), "hello".to_string()]);
         assert!(!result.is_err());
     }
 
     #[test]
     fn command_with_error_result_value_test() {
-        let a: ActionWithResult = |_: &Context| {
+        let a: Action = |_: &Context| {
             return Err(Box::new(Error));
         };
-        let command = Command::new("hello").action_with_result(a);
+        let command = Command::new("hello").action(a);
         let app = App::new("test").command(command);
-        let result = app.run_with_result(vec!["test".to_string(), "hello".to_string()]);
+        let result = app.run(vec!["test".to_string(), "hello".to_string()]);
         assert!(result.is_err());
     }
 

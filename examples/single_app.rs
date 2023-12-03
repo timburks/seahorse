@@ -20,10 +20,11 @@ fn main() {
     app.run(args);
 }
 
-fn action(c: &Context) {
+fn action(c: &Context) -> Result<(), Box<dyn std::error::Error>> {
     if c.bool_flag("bye") {
         println!("Bye, {:?}", c.args);
     } else {
         println!("Hello, {:?}", c.args);
     }
+    return Ok(());
 }

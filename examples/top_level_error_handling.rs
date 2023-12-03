@@ -9,7 +9,7 @@ fn main() {
         .description(env!("CARGO_PKG_DESCRIPTION"))
         .usage("multiple_app [command] [arg]")
         .version(env!("CARGO_PKG_VERSION"))
-        .action_with_result(|c: &Context| {
+        .action(|c: &Context| {
             if c.bool_flag("error") {
                 Err(Box::new(Error))
             } else {
@@ -22,7 +22,7 @@ fn main() {
                 .alias("e"),
         );
 
-    match app.run_with_result(args) {
+    match app.run(args) {
         Ok(_) => println!("OK"),
         Err(e) => println!("{}", e),
     };
