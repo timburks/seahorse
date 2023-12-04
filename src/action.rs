@@ -11,7 +11,7 @@ use std::result::Result;
 ///
 /// let action: Action = |c: &Context| {
 ///     println!("{:?}", c.args);
-///     return Ok(());
+///     Ok(())
 /// };
 /// ```
 pub type Action = fn(&Context) -> Result<(), Box<dyn Error>>;

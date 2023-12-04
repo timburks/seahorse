@@ -232,7 +232,7 @@ impl App {
                 }
                 None => {
                     self.help();
-                    return Ok(());
+                    Ok(())
                 }
             },
         }
@@ -440,7 +440,7 @@ mod tests {
                 Ok(flag) => assert_eq!(1.23, flag),
                 _ => assert!(false, "float test false..."),
             }
-            return Ok(());
+            Ok(())
         };
         let c = Command::new("hello")
             .alias("h")
@@ -508,7 +508,7 @@ mod tests {
                 Ok(flag) => assert_eq!(1.23, flag),
                 _ => assert!(false, "float test false..."),
             }
-            return Ok(());
+            Ok(())
         };
 
         let app = App::new("test")
@@ -557,7 +557,7 @@ mod tests {
                 Ok(flag) => assert_eq!(1.23, flag),
                 _ => assert!(false, "float test false..."),
             }
-            return Ok(());
+            Ok(())
         };
 
         let app = App::new("test")
@@ -605,7 +605,7 @@ mod tests {
                 Ok(flag) => assert_eq!(1.23, flag),
                 _ => assert!(false, "float test false..."),
             }
-            return Ok(());
+            Ok(())
         };
 
         let app = App::new("test")
@@ -638,7 +638,7 @@ mod tests {
     #[test]
     fn app_with_ok_result_test() {
         let a: Action = |_: &Context| {
-            return Ok(());
+            Ok(())
         };
         let app = App::new("test").action(a);
         app.run(vec!["test".to_string()]);
@@ -647,7 +647,7 @@ mod tests {
     #[test]
     fn app_with_ok_result_value_test() {
         let a: Action = |_: &Context| {
-            return Ok(());
+            Ok(())
         };
         let app = App::new("test").action(a);
         let result = app.run(vec!["test".to_string()]);
@@ -667,7 +667,7 @@ mod tests {
     #[test]
     fn command_with_ok_result_test() {
         let a: Action = |_: &Context| {
-            return Ok(());
+            Ok(())
         };
         let command = Command::new("hello").action(a);
         let app = App::new("test").command(command);
@@ -677,7 +677,7 @@ mod tests {
     #[test]
     fn command_with_ok_result_value_test() {
         let a: Action = |_: &Context| {
-            return Ok(());
+            Ok(())
         };
         let command = Command::new("hello").action(a);
         let app = App::new("test").command(command);

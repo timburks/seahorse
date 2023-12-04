@@ -8,7 +8,7 @@ fn main() {
         .description(env!("CARGO_PKG_DESCRIPTION"))
         .usage("multiple_app [command] [arg]")
         .version(env!("CARGO_PKG_VERSION"))
-        .action(|c: &Context| {println!("{:?} : {}", c.args, c.bool_flag("bool"));return Ok(());})
+        .action(|c: &Context| {println!("{:?} : {}", c.args, c.bool_flag("bool"));Ok(())})
         .flag(
             Flag::new("bool", FlagType::Bool)
                 .description("bool flag")
@@ -48,7 +48,7 @@ fn hello_action(c: &Context) -> Result<(), Box<dyn std::error::Error>> {
             FlagError::NotFound => println!("not found neko flag"),
         },
     }
-    return Ok(());
+    Ok(())
 }
 
 fn hello_command() -> Command {

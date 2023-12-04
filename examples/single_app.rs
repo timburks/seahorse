@@ -26,5 +26,5 @@ fn action(c: &Context) -> Result<(), Box<dyn std::error::Error>> {
     } else {
         println!("Hello, {:?}", c.args);
     }
-    return Ok(());
+    Ok(())
 }

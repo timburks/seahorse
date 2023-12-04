@@ -73,7 +73,7 @@ impl Command {
     /// ```
     /// use seahorse::{Command, Context, Action};
     ///
-    /// let action: Action = |c: &Context| {println!("{:?}", c.args); return Ok(());};
+    /// let action: Action = |c: &Context| {println!("{:?}", c.args); Ok(())};
     /// let command = Command::new("cmd")
     ///     .action(action);
     /// ```
@@ -228,7 +228,7 @@ impl Command {
                     }
                     None => {
                         self.help();
-                        return Ok(());
+                        Ok(())
                     }
                 },
             },
@@ -246,7 +246,7 @@ impl Command {
                 }
                 None => {
                     self.help();
-                    return Ok(());
+                    Ok(())
                 }
             },
         }
@@ -389,7 +389,7 @@ mod tests {
 
     #[test]
     fn command_test() {
-        let a: Action = |c: &Context| {println!("Hello, {:?}", c.args); return Ok(());};
+        let a: Action = |c: &Context| {println!("Hello, {:?}", c.args); Ok(())};
         let c = Command::new("hello")
             .description("usre command")
             .usage("test hello user")
@@ -403,7 +403,7 @@ mod tests {
 
     #[test]
     fn sub_command_test() {
-        let a: Action = |c: &Context| {println!("Hello, {:?}", c.args); return Ok(());};
+        let a: Action = |c: &Context| {println!("Hello, {:?}", c.args); Ok(())};
         let sub = Command::new("world")
             .description("user command")
             .usage("test hello world user")
