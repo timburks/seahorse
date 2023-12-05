@@ -1,14 +1,17 @@
 use seahorse::{error::FlagErrorKind, App, Command, Context, Flag, FlagType};
 use std::env;
 
-fn main() {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args: Vec<String> = env::args().collect();
     let app = App::new("multiple_app")
         .author(env!("CARGO_PKG_AUTHORS"))
         .description(env!("CARGO_PKG_DESCRIPTION"))
         .usage("multiple_app [command] [arg]")
         .version(env!("CARGO_PKG_VERSION"))
-        .action(|c: &Context| {println!("{:?} : {}", c.args, c.bool_flag("bool")); Ok(())})
+        .action(|c: &Context| {
+            println!("{:?} : {}", c.args, c.bool_flag("bool"));
+            Ok(())
+        })
         .flag(
             Flag::new("bool", FlagType::Bool)
                 .description("bool flag")
@@ -17,7 +20,7 @@ fn main() {
         .command(add_command())
         .command(hello_command());
 
-    app.run(args);
+    return app.run(args);
 }
 
 fn hello_action(c: &Context) -> Result<(), Box<dyn std::error::Error>> {
@@ -90,5 +93,8 @@ fn world_command() -> Command {
         .description("hello world command")
         .usage("nested_multiple_app hello(he, h) world(w)")
         .alias("w")
-        .action(|_| {println!("Hello world"); Ok(())})
+        .action(|_| {
+            println!("Hello world");
+            Ok(())
+        })
 }

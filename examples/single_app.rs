@@ -1,7 +1,7 @@
 use seahorse::{App, Context, Flag, FlagType};
 use std::env;
 
-fn main() {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args: Vec<String> = env::args().collect();
     let name = "single_app";
 
@@ -17,7 +17,7 @@ fn main() {
                 .alias("b"),
         );
 
-    app.run(args);
+    return app.run(args);
 }
 
 fn action(c: &Context) -> Result<(), Box<dyn std::error::Error>> {

@@ -2,7 +2,7 @@ use seahorse::{App, Context, Flag, FlagType};
 use std::env;
 use std::fmt;
 
-fn main() {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args: Vec<String> = env::args().collect();
     let app = App::new("cli")
         .author(env!("CARGO_PKG_AUTHORS"))
@@ -22,10 +22,7 @@ fn main() {
                 .alias("e"),
         );
 
-    match app.run(args) {
-        Ok(_) => println!("OK"),
-        Err(e) => println!("{}", e),
-    };
+    return app.run(args);
 }
 
 #[derive(Debug, Clone)]

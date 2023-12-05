@@ -1,6 +1,5 @@
 use crate::{
-    error::ActionError, error::ActionErrorKind, Action, Command, Context, Flag,
-    FlagType, Help,
+    error::ActionError, error::ActionErrorKind, Action, Command, Context, Flag, FlagType, Help,
 };
 use std::error::Error;
 
@@ -415,7 +414,8 @@ mod tests {
     #[test]
     fn app_new_only_test() {
         let app = App::new("cli");
-        app.run(vec!["cli".to_string()]);
+        let result = app.run(vec!["cli".to_string()]);
+        assert!(result.is_ok());
 
         assert_eq!(app.name, "cli".to_string());
         assert_eq!(app.usage, None);
@@ -459,7 +459,7 @@ mod tests {
             .version("0.0.1")
             .command(c);
 
-        app.run(vec![
+        let result = app.run(vec![
             "test".to_string(),
             "hello".to_string(),
             "args".to_string(),
@@ -471,8 +471,9 @@ mod tests {
             "--float".to_string(),
             "1.23".to_string(),
         ]);
+        assert!(result.is_ok());
 
-        app.run(vec![
+        let result = app.run(vec![
             "test".to_string(),
             "h".to_string(),
             "args".to_string(),
@@ -484,6 +485,7 @@ mod tests {
             "--float".to_string(),
             "1.23".to_string(),
         ]);
+        assert!(result.is_ok());
 
         assert_eq!(app.name, "test".to_string());
         assert_eq!(app.usage, Some("test [command] [arg]".to_string()));
@@ -522,7 +524,7 @@ mod tests {
             .flag(Flag::new("int", FlagType::Int))
             .flag(Flag::new("float", FlagType::Float));
 
-        app.run(vec![
+        let result = app.run(vec![
             "test".to_string(),
             "args".to_string(),
             "--bool".to_string(),
@@ -533,6 +535,7 @@ mod tests {
             "--float".to_string(),
             "1.23".to_string(),
         ]);
+        assert!(result.is_ok());
 
         assert_eq!(app.name, "test".to_string());
         assert_eq!(app.usage, Some("test [arg]".to_string()));
@@ -571,7 +574,7 @@ mod tests {
             .flag(Flag::new("int", FlagType::Int))
             .flag(Flag::new("float", FlagType::Float));
 
-        app.run(vec![
+        let result = app.run(vec![
             "test".to_string(),
             "--bool".to_string(),
             "--string".to_string(),
@@ -581,6 +584,7 @@ mod tests {
             "--float".to_string(),
             "1.23".to_string(),
         ]);
+        assert!(result.is_ok());
 
         assert_eq!(app.name, "test".to_string());
         assert_eq!(app.usage, Some("test".to_string()));
@@ -619,7 +623,7 @@ mod tests {
             .flag(Flag::new("int", FlagType::Int))
             .flag(Flag::new("float", FlagType::Float).alias("f"));
 
-        app.run(vec![
+        let result = app.run(vec![
             "test".to_string(),
             "args".to_string(),
             "--bool".to_string(),
@@ -627,6 +631,7 @@ mod tests {
             "--int=100".to_string(),
             "-f=1.23".to_string(),
         ]);
+        assert!(result.is_ok());
 
         assert_eq!(app.name, "test".to_string());
         assert_eq!(app.usage, Some("test [arg]".to_string()));
@@ -637,21 +642,18 @@ mod tests {
 
     #[test]
     fn app_with_ok_result_test() {
-        let a: Action = |_: &Context| {
-            Ok(())
-        };
+        let a: Action = |_: &Context| Ok(());
         let app = App::new("test").action(a);
-        app.run(vec!["test".to_string()]);
+        let result = app.run(vec!["test".to_string()]);
+        assert!(result.is_ok());
     }
 
     #[test]
     fn app_with_ok_result_value_test() {
-        let a: Action = |_: &Context| {
-            Ok(())
-        };
+        let a: Action = |_: &Context| Ok(());
         let app = App::new("test").action(a);
         let result = app.run(vec!["test".to_string()]);
-        assert!(!result.is_err());
+        assert!(result.is_ok());
     }
 
     #[test]
@@ -666,19 +668,16 @@ mod tests {
 
     #[test]
     fn command_with_ok_result_test() {
-        let a: Action = |_: &Context| {
-            Ok(())
-        };
+        let a: Action = |_: &Context| Ok(());
         let command = Command::new("hello").action(a);
         let app = App::new("test").command(command);
-        app.run(vec!["test".to_string(), "hello".to_string()]);
+        let result = app.run(vec!["test".to_string(), "hello".to_string()]);
+        assert!(result.is_ok());
     }
 
     #[test]
     fn command_with_ok_result_value_test() {
-        let a: Action = |_: &Context| {
-            Ok(())
-        };
+        let a: Action = |_: &Context| Ok(());
         let command = Command::new("hello").action(a);
         let app = App::new("test").command(command);
         let result = app.run(vec!["test".to_string(), "hello".to_string()]);

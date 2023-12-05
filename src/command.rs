@@ -389,7 +389,10 @@ mod tests {
 
     #[test]
     fn command_test() {
-        let a: Action = |c: &Context| {println!("Hello, {:?}", c.args); Ok(())};
+        let a: Action = |c: &Context| {
+            println!("Hello, {:?}", c.args);
+            Ok(())
+        };
         let c = Command::new("hello")
             .description("usre command")
             .usage("test hello user")
@@ -403,7 +406,10 @@ mod tests {
 
     #[test]
     fn sub_command_test() {
-        let a: Action = |c: &Context| {println!("Hello, {:?}", c.args); Ok(())};
+        let a: Action = |c: &Context| {
+            println!("Hello, {:?}", c.args);
+            Ok(())
+        };
         let sub = Command::new("world")
             .description("user command")
             .usage("test hello world user")
