@@ -58,16 +58,16 @@ $ echo 'seahorse = "*"' >> Cargo.toml
 use seahorse::{App};
 use std::env;
 
-fn main() {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args: Vec<String> = env::args().collect();
     let app = App::new(env!("CARGO_PKG_NAME"))
         .description(env!("CARGO_PKG_DESCRIPTION"))
         .author(env!("CARGO_PKG_AUTHORS"))
         .version(env!("CARGO_PKG_VERSION"))
         .usage("cli [args]")
-        .action(|c| println!("Hello, {:?}", c.args));
+        .action(|c| println!("Hello, {:?}", c.args); Ok(()));
 
-    app.run(args);
+    return app.run(args);
 }
 ```
 
@@ -82,7 +82,7 @@ $ ./target/release/cli John
 use seahorse::{App, Context, Command};
 use std::env;
 
-fn main() {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args: Vec<String> = env::args().collect();
     let app = App::new(env!("CARGO_PKG_NAME"))
         .description(env!("CARGO_PKG_DESCRIPTION"))
@@ -93,16 +93,18 @@ fn main() {
         .command(add_command())
         .command(sub_command());
 
-    app.run(args);
+    return app.run(args);
 }
 
-fn default_action(c: &Context) {
+fn default_action(c: &Context) -> Result<(), Box<dyn std::error::Error>> {
     println!("Hello, {:?}", c.args);
+    Ok(())
 }
 
-fn add_action(c: &Context) {
+fn add_action(c: &Context) -> Result<(), Box<dyn std::error::Error>> {
     let sum: i32 = c.args.iter().map(|n| n.parse::<i32>().unwrap()).sum();
     println!("{}", sum);
+    Ok(())
 }
 
 fn add_command() -> Command {
@@ -113,9 +115,10 @@ fn add_command() -> Command {
         .action(add_action)
 }
 
-fn sub_action(c: &Context) {
+fn sub_action(c: &Context) -> Result<(), Box<dyn std::error::Error>> {
     let sum: i32 = c.args.iter().map(|n| n.parse::<i32>().unwrap() * -1).sum();
     println!("{}", sum);
+    Ok(())
 }
 
 fn sub_command() -> Command {
@@ -141,10 +144,10 @@ $ cli sub 12 23 89
 ### Branch processing by flag
 
 ```rust
-use seahorse::{App, Command, Context, Flag, FlagType, error::FlagError};
+use seahorse::{App, Command, Context, Flag, FlagType};
 use std::env;
 
-fn main() {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args: Vec<String> = env::args().collect();
     let app = App::new(env!("CARGO_PKG_NAME"))
         .description(env!("CARGO_PKG_DESCRIPTION"))
@@ -164,10 +167,10 @@ fn main() {
         )
         .command(calc_command());
 
-    app.run(args);
+    return app.run(args);
 }
 
-fn default_action(c: &Context) {
+fn default_action(c: &Context) -> Result<(), Box<dyn std::error::Error>> {
     if c.bool_flag("bye") {
         println!("Bye, {:?}", c.args);
     } else {
@@ -177,9 +180,10 @@ fn default_action(c: &Context) {
     if let Ok(age) = c.int_flag("age") {
         println!("{:?} is {} years old", c.args, age);
     }
+    Ok(())
 }
 
-fn calc_action(c: &Context) {
+fn calc_action(c: &Context) -> Result<(), Box<dyn std::error::Error>> {
     match c.string_flag("operator") {
         Ok(op) => {
             let sum: i32 = match &*op {
@@ -189,14 +193,9 @@ fn calc_action(c: &Context) {
             };
 
             println!("{}", sum);
-        }
-        Err(e) => match e {
-            FlagError::Undefined => panic!("undefined operator..."),
-            FlagError::ArgumentError => panic!("argument error..."),
-            FlagError::NotFound => panic!("not found flag..."),
-            FlagError::ValueTypeError => panic!("value type mismatch..."),
-            FlagError::TypeError => panic!("flag type mismatch..."),
+            Ok(())
         },
+        Err(e) => Err(Box::new(e)).
     }
 }
 
@@ -242,14 +241,14 @@ $ cli calc -op sub 10 6 3 2
 use seahorse::{App, Context, Flag, FlagType};
 use std::env;
 
-fn main() {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args: Vec<String> = env::args().collect();
     let app = App::new(env!("CARGO_PKG_NAME"))
         .author(env!("CARGO_PKG_AUTHORS"))
         .description(env!("CARGO_PKG_DESCRIPTION"))
         .usage("multiple_app [command] [arg]")
         .version(env!("CARGO_PKG_VERSION"))
-        .action_with_result(|c: &Context| {
+        .action(|c: &Context| {
             if c.bool_flag("error") {
                 Err(Box::new(Error))
             } else {
@@ -262,10 +261,7 @@ fn main() {
                 .alias("e"),
         );
 
-    match app.run_with_result(args) {
-        Ok(_) => println!("OK"),
-        Err(e) => println!("{}", e),
-    };
+    return app.run(args);
 }
 
 #[derive(Debug, Clone)]
