@@ -1,4 +1,4 @@
-use crate::error::FlagError;
+use crate::error::{FlagError, FlagErrorKind};
 use crate::{Flag, FlagType, FlagValue};
 
 /// `Context` type
@@ -35,7 +35,7 @@ impl Context {
                         };
                         v.push((flag.name.to_string(), flag.value(val)))
                     } else {
-                        v.push((flag.name.to_string(), Err(FlagError::NotFound)))
+                        v.push((flag.name.to_string(), Err(FlagError{kind:FlagErrorKind::NotFound})))
                     }
                 }
                 Some(v)
@@ -62,7 +62,7 @@ impl Context {
                 Ok(val) => Ok(val.to_owned()),
                 Err(e) => Err(e.to_owned()),
             },
-            None => Err(FlagError::Undefined),
+            None => Err(FlagError{kind:FlagErrorKind::Undefined}),
         }
     }
 
@@ -107,7 +107,7 @@ impl Context {
         let r = self.result_flag_value(name)?;
         match r {
             FlagValue::String(val) => Ok(val),
-            _ => Err(FlagError::TypeError),
+            _ => Err(FlagError{kind:FlagErrorKind::TypeError}),
         }
     }
 
@@ -129,7 +129,7 @@ impl Context {
         let r = self.result_flag_value(name)?;
         match r {
             FlagValue::Int(val) => Ok(val),
-            _ => Err(FlagError::TypeError),
+            _ => Err(FlagError{kind:FlagErrorKind::TypeError}),
         }
     }
 
@@ -151,7 +151,7 @@ impl Context {
         let r = self.result_flag_value(name)?;
         match r {
             FlagValue::Uint(val) => Ok(val),
-            _ => Err(FlagError::TypeError),
+            _ => Err(FlagError{kind:FlagErrorKind::TypeError}),
         }
     }
 
@@ -173,7 +173,7 @@ impl Context {
         let r = self.result_flag_value(name)?;
         match r {
             FlagValue::Float(val) => Ok(val),
-            _ => Err(FlagError::TypeError),
+            _ => Err(FlagError{kind:FlagErrorKind::TypeError}),
         }
     }
 
@@ -195,7 +195,7 @@ impl Context {
 
 #[cfg(test)]
 mod tests {
-    use crate::error::FlagError;
+    use crate::error::{FlagError, FlagErrorKind};
     use crate::{Context, Flag, FlagType};
 
     #[test]
@@ -234,23 +234,23 @@ mod tests {
         assert_eq!(context.float_flag("float"), Ok(1.23));
 
         // string value arg, string flag, used as int
-        assert_eq!(context.int_flag("string"), Err(FlagError::TypeError));
+        assert_eq!(context.int_flag("string"), Err(FlagError{kind:FlagErrorKind::TypeError}));
         // string value arg, string flag, used as uint
-        assert_eq!(context.uint_flag("string"), Err(FlagError::TypeError));
+        assert_eq!(context.uint_flag("string"), Err(FlagError{kind:FlagErrorKind::TypeError}));
         // string value arg, float flag, used as float
         assert_eq!(
             context.float_flag("invalid_float"),
-            Err(FlagError::ValueTypeError)
+            Err(FlagError{kind:FlagErrorKind::ValueTypeError})
         );
         // use a flag whose name is not defined as flag
         assert_eq!(
             context.string_flag("not_registered"),
-            Err(FlagError::Undefined)
+            Err(FlagError{kind:FlagErrorKind::Undefined})
         );
         // use a flag but it's value not passed
         assert_eq!(
             context.string_flag("not_specified"),
-            Err(FlagError::NotFound)
+            Err(FlagError{kind:FlagErrorKind::NotFound})
         );
     }
 }

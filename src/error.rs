@@ -1,7 +1,7 @@
 use std::error;
 use std::fmt;
 
-#[derive(Debug)]
+#[derive(PartialEq, Clone, Debug)]
 pub struct ActionError {
     pub kind: ActionErrorKind,
 }
@@ -28,7 +28,20 @@ impl fmt::Display for ActionErrorKind {
 }
 
 #[derive(PartialEq, Clone, Debug)]
-pub enum FlagError {
+pub struct FlagError {
+    pub kind: FlagErrorKind,
+}
+
+impl fmt::Display for FlagError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.kind)
+    }
+}
+
+impl std::error::Error for FlagError {}
+
+#[derive(PartialEq, Clone, Debug)]
+pub enum FlagErrorKind {
     NotFound,
     Undefined,
     TypeError,
@@ -36,26 +49,26 @@ pub enum FlagError {
     ArgumentError,
 }
 
-impl fmt::Display for FlagError {
+impl fmt::Display for FlagErrorKind {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
-            FlagError::NotFound => f.write_str("NotFound"),
-            FlagError::Undefined => f.write_str("Undefined"),
-            FlagError::TypeError => f.write_str("TypeError"),
-            FlagError::ValueTypeError => f.write_str("ValueTypeError"),
-            FlagError::ArgumentError => f.write_str("ArgumentError"),
+            FlagErrorKind::NotFound => f.write_str("NotFound"),
+            FlagErrorKind::Undefined => f.write_str("Undefined"),
+            FlagErrorKind::TypeError => f.write_str("TypeError"),
+            FlagErrorKind::ValueTypeError => f.write_str("ValueTypeError"),
+            FlagErrorKind::ArgumentError => f.write_str("ArgumentError"),
         }
     }
 }
 
-impl error::Error for FlagError {
+impl error::Error for FlagErrorKind {
     fn description(&self) -> &str {
         match *self {
-            FlagError::NotFound => "Flag not found",
-            FlagError::Undefined => "Flag undefined",
-            FlagError::TypeError => "Flag type mismatch",
-            FlagError::ValueTypeError => "Value type mismatch",
-            FlagError::ArgumentError => "Illegal argument",
+            FlagErrorKind::NotFound => "Flag not found",
+            FlagErrorKind::Undefined => "Flag undefined",
+            FlagErrorKind::TypeError => "Flag type mismatch",
+            FlagErrorKind::ValueTypeError => "Value type mismatch",
+            FlagErrorKind::ArgumentError => "Illegal argument",
         }
     }
 }

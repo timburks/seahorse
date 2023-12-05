@@ -1,4 +1,4 @@
-use crate::error::FlagError;
+use crate::error::{FlagError, FlagErrorKind};
 
 /// `Flag` type.
 ///
@@ -129,28 +129,28 @@ impl Flag {
             FlagType::Bool => Ok(FlagValue::Bool(true)),
             FlagType::String => match v {
                 Some(s) => Ok(FlagValue::String(s)),
-                None => Err(FlagError::ArgumentError),
+                None => Err(FlagError{kind:FlagErrorKind::ArgumentError}),
             },
             FlagType::Int => match v {
                 Some(i) => match i.parse::<isize>() {
                     Ok(i) => Ok(FlagValue::Int(i)),
-                    Err(_) => Err(FlagError::ValueTypeError),
+                    Err(_) => Err(FlagError{kind:FlagErrorKind::ValueTypeError}),
                 },
-                None => Err(FlagError::ArgumentError),
+                None => Err(FlagError{kind:FlagErrorKind::ArgumentError}),
             },
             FlagType::Uint => match v {
                 Some(i) => match i.parse::<usize>() {
                     Ok(i) => Ok(FlagValue::Uint(i)),
-                    Err(_) => Err(FlagError::ValueTypeError),
+                    Err(_) => Err(FlagError{kind:FlagErrorKind::ValueTypeError}),
                 },
-                None => Err(FlagError::ArgumentError),
+                None => Err(FlagError{kind:FlagErrorKind::ArgumentError}),
             },
             FlagType::Float => match v {
                 Some(f) => match f.parse::<f64>() {
                     Ok(f) => Ok(FlagValue::Float(f)),
-                    Err(_) => Err(FlagError::ValueTypeError),
+                    Err(_) => Err(FlagError{kind:FlagErrorKind::ValueTypeError}),
                 },
-                None => Err(FlagError::ArgumentError),
+                None => Err(FlagError{kind:FlagErrorKind::ArgumentError}),
             },
         }
     }

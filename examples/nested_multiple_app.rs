@@ -1,4 +1,4 @@
-use seahorse::{error::FlagError, App, Command, Context, Flag, FlagType};
+use seahorse::{error::FlagErrorKind, App, Command, Context, Flag, FlagType};
 use std::env;
 
 fn main() {
@@ -29,23 +29,23 @@ fn hello_action(c: &Context) -> Result<(), Box<dyn std::error::Error>> {
 
     match c.int_flag("age") {
         Ok(age) => println!("{:?} is {} years old", c.args, age),
-        Err(e) => match e {
-            FlagError::TypeError => println!("age flag type error"),
-            FlagError::ValueTypeError => println!("value type error"),
-            FlagError::Undefined => println!("undefined age flag"),
-            FlagError::ArgumentError => println!("age flag argument error"),
-            FlagError::NotFound => println!("not found age flag"),
+        Err(e) => match e.kind {
+            FlagErrorKind::TypeError => println!("age flag type error"),
+            FlagErrorKind::ValueTypeError => println!("value type error"),
+            FlagErrorKind::Undefined => println!("undefined age flag"),
+            FlagErrorKind::ArgumentError => println!("age flag argument error"),
+            FlagErrorKind::NotFound => println!("not found age flag"),
         },
     }
 
     match c.string_flag("neko") {
         Ok(neko) => println!("neko say {}", neko),
-        Err(e) => match e {
-            FlagError::TypeError => println!("neko flag type error"),
-            FlagError::ValueTypeError => println!("value type error"),
-            FlagError::Undefined => println!("undefined neko flag"),
-            FlagError::ArgumentError => println!("neko flag argument error"),
-            FlagError::NotFound => println!("not found neko flag"),
+        Err(e) => match e.kind {
+            FlagErrorKind::TypeError => println!("neko flag type error"),
+            FlagErrorKind::ValueTypeError => println!("value type error"),
+            FlagErrorKind::Undefined => println!("undefined neko flag"),
+            FlagErrorKind::ArgumentError => println!("neko flag argument error"),
+            FlagErrorKind::NotFound => println!("not found neko flag"),
         },
     }
     Ok(())
